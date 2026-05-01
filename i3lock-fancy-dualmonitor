@@ -3,10 +3,16 @@
 # Dependencies: imagemagick, i3lock-color-git, scrot
 set -o errexit -o noclobber -o nounset
 
+if command -v magick &>/dev/null; then
+    convert="magick"
+else
+    convert="convert"
+fi
+
 HUE=(-level 0%,100%,0.6)
 EFFECT=(-filter Gaussian -resize 20% -define filter:sigma=1.5 -resize 500.5%)
 # default system sans-serif font
-FONT="$(convert -list font | awk "{ a[NR] = \$2 } /family: $(fc-match sans -f "%{family}\n")/ { print a[NR-1]; exit }")"
+FONT="$($convert -list font | awk "{ a[NR] = \$2 } /family: $(fc-match sans -f "%{family}\n")/ { print a[NR-1]; exit }")"
 #IMAGE="$(mktemp).png"
 IMAGE=$(mktemp --suffix=.png)
 SHOT=(import -silent -window root)
@@ -91,7 +97,7 @@ do
     fi
 done <<<"$(xrandr)"
 
-convert "$IMAGE" "${HUE[@]}" "${EFFECT[@]}" "${LOCK[@]}" "$IMAGE"
+$convert "$IMAGE" "${HUE[@]}" "${EFFECT[@]}" "${LOCK[@]}" "$IMAGE"
 
 # try to use a forked version of i3lock with prepared parameters
 if ! i3lock -n "${PARAM[@]}" -i "$IMAGE" > /dev/null 2>&1; then
